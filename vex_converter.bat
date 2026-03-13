@@ -3,7 +3,7 @@ cd /d "%~dp0"
 
 if not exist ".venv" (
     echo Setting up environment...
-    python -m venv .venv
+    python -m venv --upgrade-deps .venv
 )
 
 call .venv\Scripts\activate.bat
