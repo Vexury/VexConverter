@@ -8,7 +8,15 @@ A minimal command-line tool for converting files and URLs. Drop a file or URL in
 vex_converter.bat <file_or_url>
 ```
 
-The tool detects the input type automatically, lists the available output formats, and prompts you to choose. For images and videos you can also specify output dimensions (`1920x1080`, `1920`, `x1080`, or `60%`).
+The tool detects the input type automatically, lists the available output formats, and prompts you to choose. Depending on the format, you will be offered additional options:
+
+- **Dimensions** — `1920x1080`, `1920`, `x1080`, or `60%` (images and video)
+- **Trim** — start and end time in seconds or `HH:MM:SS` (video and audio)
+- **Speed** — playback speed multiplier, e.g. `0.5` or `2.0` (video and audio)
+- **Strip audio** — remove the audio track from a video output
+- **Resolution** — max download resolution for URL video, e.g. `1080`, `720` (URL)
+
+All options are optional — press Enter to use the default.
 
 ## Requirements
 
@@ -84,7 +92,7 @@ Input: any URL supported by yt-dlp (YouTube, Vimeo, and many more)
 
 | Output | Notes |
 |--------|-------|
-| mp4 | Best available quality |
+| mp4 | Resolution option (default: best available) |
 | mp3 | Audio only |
 | wav | Audio only |
 | flac | Audio only, lossless |

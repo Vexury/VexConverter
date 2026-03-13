@@ -27,13 +27,53 @@ def _scale_vf(dims) -> str:
     return f"scale={w if w else '-2'}:{h if h else '-2'}"
 
 
+def _trim_args(opts: dict) -> list:
+    args = []
+    if opts.get("trim_start"):
+        args += ["-ss", opts["trim_start"]]
+    if opts.get("trim_end"):
+        args += ["-to", opts["trim_end"]]
+    return args
+
+
+def _atempo_chain(speed: float) -> str:
+    filters = []
+    s = speed
+    while s > 2.0:
+        filters.append("atempo=2.0")
+        s /= 2.0
+    while s < 0.5:
+        filters.append("atempo=0.5")
+        s *= 2.0
+    filters.append(f"atempo={s:.6f}")
+    return ",".join(filters)
+
+
+def _build_af(speed: float | None) -> list:
+    if not speed or speed == 1.0:
+        return []
+    return ["-af", _atempo_chain(speed)]
+
+
+def _build_vf(dims=None, speed=None) -> list:
+    filters = []
+    if speed and speed != 1.0:
+        filters.append(f"setpts={1 / speed:.6f}*PTS")
+    if dims:
+        filters.append(_scale_vf(dims))
+    return ["-vf", ",".join(filters)] if filters else []
+
+
 def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> Path:
     if not shutil.which("ffmpeg"):
         raise RuntimeError("ffmpeg not found on PATH — download from https://ffmpeg.org")
 
     duration = _duration(input_path)
 
-    dims = opts.get("dims")
+    dims  = opts.get("dims")
+    speed = opts.get("speed")
+    mute  = opts.get("mute", False)
+    trim  = _trim_args(opts)
 
     if fmt == "frame":
         t      = opts.get("time_t", 0)
@@ -62,24 +102,26 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
 
     if fmt in _AUDIO:
         out = out_dir / f"{stem}.{fmt}"
-        _ffmpeg(["ffmpeg", "-y", "-i", input_path, "-vn"] + _AUDIO[fmt] + [str(out)], duration)
+        _ffmpeg(["ffmpeg", "-y", "-i", input_path] + trim + ["-vn"] + _AUDIO[fmt] + _build_af(speed) + [str(out)], duration)
         return out
 
     if fmt == "gif":
-        fps     = opts.get("fps", 10)
-        scale   = f"{_scale_vf(dims)}:flags=lanczos" if dims else "scale=640:-1:flags=lanczos"
-        palette = out_dir / f"{stem}_palette.png"
-        out     = out_dir / f"{stem}.gif"
+        fps      = opts.get("fps", 10)
+        scale    = f"{_scale_vf(dims)}:flags=lanczos" if dims else "scale=640:-1:flags=lanczos"
+        spd      = f"setpts={1/speed:.6f}*PTS," if speed and speed != 1.0 else ""
+        vf_base  = f"{spd}fps={fps},{scale}"
+        palette  = out_dir / f"{stem}_palette.png"
+        out      = out_dir / f"{stem}.gif"
         print("  Building palette...", end="", flush=True)
         subprocess.run(
-            ["ffmpeg", "-y", "-i", input_path,
-             "-vf", f"fps={fps},{scale},palettegen", str(palette)],
+            ["ffmpeg", "-y", "-i", input_path] + trim +
+            ["-vf", f"{vf_base},palettegen", str(palette)],
             capture_output=True, check=True,
         )
         print(" done!")
         _ffmpeg(
-            ["ffmpeg", "-y", "-i", input_path, "-i", str(palette),
-             "-filter_complex", f"fps={fps},{scale}[x];[x][1:v]paletteuse",
+            ["ffmpeg", "-y", "-i", input_path] + trim + ["-i", str(palette),
+             "-filter_complex", f"{vf_base}[x];[x][1:v]paletteuse",
              "-loop", "0", str(out)],
             duration, label="  Encoding GIF",
         )
@@ -87,22 +129,23 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
         return out
 
     if fmt == "webp":
-        fps   = opts.get("fps", 10)
-        scale = _scale_vf(dims) if dims else "scale=640:-1"
-        out   = out_dir / f"{stem}.webp"
+        fps     = opts.get("fps", 10)
+        scale   = _scale_vf(dims) if dims else "scale=640:-1"
+        spd     = f"setpts={1/speed:.6f}*PTS," if speed and speed != 1.0 else ""
+        out     = out_dir / f"{stem}.webp"
         _ffmpeg(
-            ["ffmpeg", "-y", "-i", input_path,
-             "-vf", f"fps={fps},{scale}:flags=lanczos",
+            ["ffmpeg", "-y", "-i", input_path] + trim +
+            ["-vf", f"{spd}fps={fps},{scale}:flags=lanczos",
              "-c:v", "libwebp", "-quality", "75", "-loop", "0", "-preset", "picture", "-an",
              str(out)],
             duration, label="  Encoding WebP",
         )
         return out
 
-    out      = out_dir / f"{stem}.{fmt}"
-    flags    = _VIDEO.get(fmt, ["-c:v", "libx264", "-crf", "23", "-c:a", "aac"])
-    scale_args = ["-vf", _scale_vf(dims)] if dims else []
-    _ffmpeg(["ffmpeg", "-y", "-i", input_path] + flags + scale_args + [str(out)], duration)
+    out   = out_dir / f"{stem}.{fmt}"
+    flags = _VIDEO.get(fmt, ["-c:v", "libx264", "-crf", "23", "-c:a", "aac"])
+    mute_args = ["-an"] if mute else _build_af(speed)
+    _ffmpeg(["ffmpeg", "-y", "-i", input_path] + trim + flags + _build_vf(dims, speed) + mute_args + [str(out)], duration)
     return out
 
 

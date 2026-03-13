@@ -50,9 +50,12 @@ def convert(input_url: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> P
             "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": fmt}],
         }
     else:
+        h      = opts.get("max_height")
+        fmt_sel = f"bestvideo[height<={h}]+bestaudio/best[height<={h}]" if h else "bestvideo+bestaudio/best"
         ydl_opts = {**common,
-            "format":               "bestvideo+bestaudio/best",
+            "format":               fmt_sel,
             "merge_output_format":  fmt,
+            "postprocessor_args":   {"merger": ["-c:v", "copy", "-c:a", "aac"]},
         }
 
     print("  Downloading...", end="", flush=True)

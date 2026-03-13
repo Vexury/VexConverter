@@ -24,9 +24,29 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
     out      = out_dir / f"{stem}.{fmt}"
     flags    = _CODECS.get(fmt, ["-c:a", "copy"])
 
+    trim = []
+    if opts.get("trim_start"):
+        trim += ["-ss", opts["trim_start"]]
+    if opts.get("trim_end"):
+        trim += ["-to", opts["trim_end"]]
+
+    speed = opts.get("speed")
+    af_args = []
+    if speed and speed != 1.0:
+        s = speed
+        chain = []
+        while s > 2.0:
+            chain.append("atempo=2.0")
+            s /= 2.0
+        while s < 0.5:
+            chain.append("atempo=0.5")
+            s *= 2.0
+        chain.append(f"atempo={s:.6f}")
+        af_args = ["-af", ",".join(chain)]
+
     print("  Converting...", end="", flush=True)
     proc = subprocess.Popen(
-        ["ffmpeg", "-y", "-i", input_path] + flags + [str(out)],
+        ["ffmpeg", "-y", "-i", input_path] + trim + flags + af_args + [str(out)],
         stderr=subprocess.PIPE, text=True, errors="replace",
     )
     last = -1

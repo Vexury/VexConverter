@@ -53,7 +53,7 @@ _DETAILS: dict[str, dict[str, tuple[str, str]]] = {
         "extract": ("Embedded images, native format", "PyMuPDF"),
     },
     "url": {
-        "mp4":  ("Best available quality", "yt-dlp"),
+        "mp4":  ("Resolution option",      "yt-dlp"),
         "mp3":  ("Audio only",             "yt-dlp + ffmpeg"),
         "wav":  ("Audio only",             "yt-dlp + ffmpeg"),
         "flac": ("Audio only, lossless",   "yt-dlp + ffmpeg"),
@@ -89,7 +89,10 @@ def prompt_format(available: list[str], input_type: str) -> str:
         print("  Invalid — enter a number or format name.")
 
 
-_NO_DIMS = {"mp3", "wav", "flac", "aac", "ogg", "opus", "m4a", "aiff", "srt", "vtt", "extract"}
+_NO_DIMS            = {"mp3", "wav", "flac", "aac", "ogg", "opus", "m4a", "aiff", "srt", "vtt", "extract"}
+_AUDIO_URL_FMTS     = {"mp3", "wav", "flac", "opus"}
+_VIDEO_CONTAINER    = {"mp4", "mkv", "webm", "avi", "mov"}
+_NO_PROCESS         = {"frame", "srt", "vtt", "extract"}
 
 
 def _parse_dims(raw: str) -> tuple[int | None, int | None] | float | None:
@@ -105,7 +108,13 @@ def _parse_dims(raw: str) -> tuple[int | None, int | None] | float | None:
     return None
 
 
-def prompt_options(fmt: str, input_type: str) -> dict:
+def _fmt_duration(seconds: float) -> str:
+    h, rem = divmod(int(seconds), 3600)
+    m, s   = divmod(rem, 60)
+    return f"{h:02d}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
+
+
+def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
     opts = {}
     if fmt == "frame":
         raw = input("  Time in seconds [0]: ").strip()
@@ -122,10 +131,39 @@ def prompt_options(fmt: str, input_type: str) -> dict:
     if input_type == "pdf" and fmt != "extract":
         raw = input("  Page number [all]: ").strip()
         opts["page"] = int(raw) if raw.isdigit() else None
+    if input_type == "url" and fmt not in _AUDIO_URL_FMTS:
+        raw = input("  Max resolution [best / 1080 / 720 / 480 / 360]: ").strip()
+        opts["max_height"] = int(raw) if raw.isdigit() else None
     if input_type in ("image", "video") and fmt not in _NO_DIMS:
         raw = input("  Dimensions WxH [original]: ").strip()
         if raw:
             opts["dims"] = _parse_dims(raw)
+    if input_type in ("video", "audio") and fmt not in _NO_PROCESS:
+        raw = input("  Start time [0]: ").strip()
+        opts["trim_start"] = raw if raw else None
+        dur_hint = ""
+        if input_path:
+            try:
+                from converters.video import _duration
+                d = _duration(input_path)
+                if d > 0:
+                    dur_hint = f" [0 – {_fmt_duration(d)}]"
+            except Exception:
+                pass
+        raw = input(f"  End time{dur_hint}: ").strip()
+        opts["trim_end"] = raw if raw else None
+    if input_type == "video" and fmt in _VIDEO_CONTAINER:
+        raw = input("  Strip audio? [y/N]: ").strip().lower()
+        opts["mute"] = (raw == "y")
+    if input_type in ("video", "audio") and fmt not in _NO_PROCESS:
+        raw = input("  Speed [1.0]: ").strip()
+        if raw:
+            try:
+                s = float(raw)
+                if s > 0 and s != 1.0:
+                    opts["speed"] = s
+            except ValueError:
+                pass
     return opts
 
 
@@ -158,7 +196,7 @@ def main():
         print()
         sys.exit(0)
 
-    opts = prompt_options(fmt, input_type)
+    opts = prompt_options(fmt, input_type, arg)
     print()
 
     if input_type == "url":
