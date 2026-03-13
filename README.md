@@ -1,6 +1,6 @@
 # VexConverter
 
-Command-line file and URL converter.
+A minimal command-line tool for converting files and URLs. Drop a file or URL in, pick an output format, and it handles the rest.
 
 ## Usage
 
@@ -8,12 +8,12 @@ Command-line file and URL converter.
 vex_converter.bat <file_or_url>
 ```
 
-The tool detects the input type, lists available output formats, and prompts you to choose.
+The tool detects the input type automatically, lists the available output formats, and prompts you to choose. For images and videos you can also specify output dimensions (`1920x1080`, `1920`, `x1080`, or `60%`).
 
 ## Requirements
 
 - Python 3.10+
-- ffmpeg on PATH (`winget install Gyan.FFmpeg`) — required for video and audio
+- [ffmpeg](https://ffmpeg.org) on PATH — required for video and audio (`winget install Gyan.FFmpeg`)
 
 ## Conversions
 
@@ -42,8 +42,8 @@ Input: `.mp4` `.mkv` `.avi` `.mov` `.wmv` `.webm` `.flv` `.m4v` `.ts` `.mts`
 | webm | VP9 + Opus |
 | avi | H.264 + MP3 |
 | mov | H.264 + AAC |
-| gif | 640px wide, FPS option (default 10) |
-| webp | Animated, 640px wide, FPS option (default 10) |
+| gif | Animated, 640px wide, FPS option (default: 10) |
+| webp | Animated, 640px wide, FPS option (default: 10) |
 | mp3 | Audio only |
 | wav | Audio only |
 | flac | Audio only, lossless |
@@ -75,15 +75,22 @@ Input: `.pdf`
 | png | 200 DPI, page number option (default: all pages) |
 | jpg | 200 DPI, page number option (default: all pages) |
 | webp | 200 DPI, page number option (default: all pages) |
-| extract | Embedded images saved in their native format |
+| extract | Extracts all embedded images in their native format |
 
-### URL (YouTube / most video sites)
-Input: any URL supported by yt-dlp
+### URL
+Input: any URL supported by yt-dlp (YouTube, Vimeo, and many more)
 
 | Output | Notes |
 |--------|-------|
 | mp4 | Best available quality |
-| mp3 | Audio extracted and converted via ffmpeg |
-| wav | Audio extracted and converted via ffmpeg |
-| flac | Audio extracted and converted via ffmpeg |
-| opus | Audio extracted and converted via ffmpeg |
+| mp3 | Audio only |
+| wav | Audio only |
+| flac | Audio only, lossless |
+| opus | Audio only |
+
+## Built with
+
+- [Pillow](https://python-pillow.org) — image conversion
+- [PyMuPDF](https://pymupdf.readthedocs.io) — PDF rendering and image extraction
+- [ffmpeg](https://ffmpeg.org) — video and audio conversion
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) — URL / video site downloading
