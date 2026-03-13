@@ -13,7 +13,9 @@ The tool detects the input type automatically, lists the available output format
 ## Requirements
 
 - Python 3.10+
-- [ffmpeg](https://ffmpeg.org) on PATH — required for video and audio (`winget install Gyan.FFmpeg`)
+- [ffmpeg](https://ffmpeg.org) on PATH — required for video and audio
+
+Run `install_ffmpeg.bat` to install ffmpeg automatically, or install it manually with `winget install Gyan.FFmpeg`.
 
 ## Conversions
 
