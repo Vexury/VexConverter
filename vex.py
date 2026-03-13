@@ -131,7 +131,7 @@ def prompt_options(fmt: str, input_type: str) -> dict:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: vex_converter.bat <file_or_url>")
+        print(f"Usage: {Path(sys.argv[0]).name} <file_or_url>")
         sys.exit(1)
 
     arg = sys.argv[1]

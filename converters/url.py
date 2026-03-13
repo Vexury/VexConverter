@@ -1,44 +1,70 @@
-import re
-import shutil
-import subprocess
 from pathlib import Path
+
+import yt_dlp
+
+_AUDIO_FMTS = {"mp3", "wav", "flac", "opus"}
+
+
+class _SilentLogger:
+    def debug(self, msg): pass
+    def info(self, msg):  pass
+    def warning(self, msg): pass
+    def error(self, msg): pass
 
 
 def convert(input_url: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> Path:
-    ytdlp = shutil.which("yt-dlp") or "yt-dlp"
-
     template = str(out_dir / "%(title)s.%(ext)s")
-    base     = [ytdlp, "--no-playlist", "--newline"]
+    last_pct  = [-1]
 
-    if fmt in ("mp3", "wav", "flac", "opus"):
-        cmd = base + ["-x", "--audio-format", fmt, "-o", template, input_url]
+    def _progress(d):
+        if d["status"] == "downloading":
+            total = d.get("total_bytes") or d.get("total_bytes_estimate", 0)
+            done  = d.get("downloaded_bytes", 0)
+            if total > 0:
+                pct = min(10 + round(done / total * 80), 90)
+                if pct != last_pct[0]:
+                    print(f"\r  Downloading... {pct:3d}%", end="", flush=True)
+                    last_pct[0] = pct
+
+    def _pp_hook(d):
+        if d["status"] == "started":
+            name = d.get("postprocessor", "")
+            if "Merge" in name:
+                print("\r  Merging streams...      ", end="", flush=True)
+            else:
+                print("\r  Converting...           ", end="", flush=True)
+
+    common = {
+        "outtmpl":            template,
+        "noplaylist":         True,
+        "quiet":              True,
+        "no_warnings":        True,
+        "logger":             _SilentLogger(),
+        "progress_hooks":     [_progress],
+        "postprocessor_hooks": [_pp_hook],
+    }
+
+    if fmt in _AUDIO_FMTS:
+        ydl_opts = {**common,
+            "format":         "bestaudio/best",
+            "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": fmt}],
+        }
     else:
-        cmd = base + ["-f", "bestvideo+bestaudio/best",
-                      "--merge-output-format", fmt, "-o", template, input_url]
+        ydl_opts = {**common,
+            "format":               "bestvideo+bestaudio/best",
+            "merge_output_format":  fmt,
+        }
 
     print("  Downloading...", end="", flush=True)
-    proc  = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             text=True, errors="replace")
-    lines = []
-    last  = -1
-    for line in proc.stdout:
-        line = line.strip()
-        lines.append(line)
-        m = re.search(r"\[download\]\s+(\d+\.?\d*)%", line)
-        if m:
-            pct = min(10 + round(float(m.group(1)) * 0.8), 90)
-            if pct != last:
-                print(f"\r  Downloading... {pct:3d}%", end="", flush=True)
-                last = pct
-
-    proc.wait()
-    if proc.returncode != 0:
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([input_url])
+    except yt_dlp.utils.DownloadError as e:
         print()
-        raise RuntimeError("yt-dlp failed:\n" + "\n".join(lines[-10:]))
+        raise RuntimeError(str(e))
 
-    print("\r  Downloading... done!   ")
+    print("\r  Done!                   ")
 
-    # Find the output file (yt-dlp names it after the video title)
     candidates = sorted(
         [f for f in out_dir.iterdir()
          if f.is_file() and f.suffix.lower().lstrip(".") == fmt],

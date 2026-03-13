@@ -1,6 +1,12 @@
 import re
 from pathlib import Path
 
+try:
+    import fitz
+    _PDF_AVAILABLE = True
+except ImportError:
+    _PDF_AVAILABLE = False
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico", ".avif"}
 VIDEO_EXTS = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".webm", ".flv", ".m4v", ".ts", ".mts"}
 AUDIO_EXTS = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".opus"}
@@ -48,7 +54,7 @@ def detect(value: str) -> dict:
             "detected_format": ext.lstrip("."),
             "available_outputs": AUDIO_OUTPUTS,
         }
-    if ext in PDF_EXTS:
+    if ext in PDF_EXTS and _PDF_AVAILABLE:
         return {
             "input_type": "pdf",
             "detected_format": "pdf",
