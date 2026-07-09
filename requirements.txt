@@ -1,3 +1,4 @@
 pillow>=10.0
 yt-dlp>=2024.1
 pymupdf>=1.23
+cairosvg>=2.7

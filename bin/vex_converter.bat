@@ -1,5 +1,5 @@
 @echo off
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 if not exist ".venv" (
     echo Setting up environment...

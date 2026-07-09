@@ -22,7 +22,7 @@ _DETAILS: dict[str, dict[str, tuple[str, str]]] = {
     "video": {
         "mp4":   ("H.264 + AAC",            "ffmpeg"),
         "mkv":   ("H.264 + AAC",            "ffmpeg"),
-        "webm":  ("VP9 + Opus",             "ffmpeg"),
+        "webm":  ("VP9 or VP8",              "ffmpeg"),
         "avi":   ("H.264 + MP3",            "ffmpeg"),
         "mov":   ("H.264 + AAC",            "ffmpeg"),
         "gif":   ("640px wide, FPS option", "ffmpeg"),
@@ -45,6 +45,9 @@ _DETAILS: dict[str, dict[str, tuple[str, str]]] = {
         "opus": ("",         "ffmpeg"),
         "m4a":  ("",         "ffmpeg"),
         "aiff": ("Lossless", "ffmpeg"),
+    },
+    "svg": {
+        "png": ("DPI option (default 96)", "cairosvg"),
     },
     "pdf": {
         "png":     ("200 DPI", "PyMuPDF"),
@@ -119,6 +122,9 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
     if fmt == "frame":
         raw = input("  Time in seconds [0]: ").strip()
         opts["time_t"] = float(raw) if raw else 0.0
+    if fmt == "webm" and input_type == "video":
+        raw = input("  Codec — VP9 or VP8 [VP9]: ").strip().lower()
+        opts["codec"] = "vp8" if raw == "vp8" else "vp9"
     if fmt in ("gif", "webp") and input_type == "video":
         raw = input("  FPS [10]: ").strip()
         opts["fps"] = int(raw) if raw else 10
@@ -128,13 +134,16 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
     if fmt in ("jpg", "jpeg", "webp") and input_type == "image":
         raw = input("  Quality 1–100 [85]: ").strip()
         opts["quality"] = int(raw) if raw else 85
+    if input_type == "svg":
+        raw = input("  DPI [96]: ").strip()
+        opts["dpi"] = int(raw) if raw.isdigit() else 96
     if input_type == "pdf" and fmt != "extract":
         raw = input("  Page number [all]: ").strip()
         opts["page"] = int(raw) if raw.isdigit() else None
     if input_type == "url" and fmt not in _AUDIO_URL_FMTS:
         raw = input("  Max resolution [best / 1080 / 720 / 480 / 360]: ").strip()
         opts["max_height"] = int(raw) if raw.isdigit() else None
-    if input_type in ("image", "video") and fmt not in _NO_DIMS:
+    if input_type in ("image", "video", "svg") and fmt not in _NO_DIMS:
         raw = input("  Dimensions WxH [original]: ").strip()
         if raw:
             opts["dims"] = _parse_dims(raw)
@@ -212,6 +221,8 @@ def main():
     try:
         if input_type == "image":
             from converters.image import convert
+        elif input_type == "svg":
+            from converters.svg import convert
         elif input_type == "video":
             from converters.video import convert
         elif input_type == "audio":

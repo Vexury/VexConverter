@@ -15,7 +15,8 @@ _VIDEO = {
     "mp4":  ["-c:v", "libx264", "-preset", "fast", "-crf", "23", "-c:a", "aac", "-movflags", "+faststart"],
     "mkv":  ["-c:v", "libx264", "-preset", "fast", "-crf", "23", "-c:a", "aac"],
     "avi":  ["-c:v", "libx264", "-preset", "fast", "-crf", "23", "-c:a", "mp3"],
-    "webm": ["-c:v", "libvpx-vp9", "-crf", "30", "-b:v", "0", "-c:a", "libopus"],
+    "webm_vp9": ["-c:v", "libvpx-vp9", "-crf", "30", "-b:v", "0", "-c:a", "libopus"],
+    "webm_vp8": ["-c:v", "libvpx", "-crf", "10", "-b:v", "1M", "-c:a", "libvorbis"],
     "mov":  ["-c:v", "libx264", "-preset", "fast", "-crf", "23", "-c:a", "aac"],
 }
 
@@ -143,7 +144,11 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
         return out
 
     out   = out_dir / f"{stem}.{fmt}"
-    flags = _VIDEO.get(fmt, ["-c:v", "libx264", "-crf", "23", "-c:a", "aac"])
+    if fmt == "webm":
+        key = "webm_vp8" if opts.get("codec") == "vp8" else "webm_vp9"
+        flags = _VIDEO[key]
+    else:
+        flags = _VIDEO.get(fmt, ["-c:v", "libx264", "-crf", "23", "-c:a", "aac"])
     mute_args = ["-an"] if mute else _build_af(speed)
     _ffmpeg(["ffmpeg", "-y", "-i", input_path] + trim + flags + _build_vf(dims, speed) + mute_args + [str(out)], duration)
     return out
