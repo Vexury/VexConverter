@@ -89,10 +89,12 @@ def detect(value: str) -> dict:
             "available_outputs": AUDIO_OUTPUTS,
         }
     if ext in PDF_EXTS and _PDF_AVAILABLE:
+        from core.ocr_support import ocr_available
+        outputs = PDF_OUTPUTS + ["ocr"] if ocr_available() else PDF_OUTPUTS
         return {
             "input_type": "pdf",
             "detected_format": "pdf",
-            "available_outputs": PDF_OUTPUTS,
+            "available_outputs": outputs,
         }
 
     is_doc = (

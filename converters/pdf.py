@@ -1,6 +1,9 @@
+import os
 import fitz  # PyMuPDF
 from pathlib import Path
 from PIL import Image
+
+from core.ocr_support import find_tessdata
 
 _PIL_FMT = {"png": "PNG", "jpg": "JPEG", "webp": "WEBP"}
 _DPI = 200
@@ -15,6 +18,9 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
 
     if fmt == "text":
         return _extract_text(doc, out_dir, stem)
+
+    if fmt == "ocr":
+        return _extract_text(doc, out_dir, stem, force_ocr=True)
 
     pil_fmt = _PIL_FMT[fmt]
     mat     = fitz.Matrix(_DPI / 72, _DPI / 72)
@@ -40,13 +46,30 @@ def _render_page(page, mat, pil_fmt: str, out: Path) -> Path:
     return out
 
 
-def _extract_text(doc, out_dir: Path, stem: str) -> Path:
-    parts = [page.get_text() for page in doc]
-    text  = "\f".join(parts)
-    out   = out_dir / f"{stem}.txt"
+def _extract_text(doc, out_dir: Path, stem: str, force_ocr: bool = False) -> Path:
+    tess = find_tessdata()
+    if force_ocr and not tess:
+        raise RuntimeError("OCR requested but Tesseract (tessdata) was not found.")
+    if tess:
+        os.environ["TESSDATA_PREFIX"] = tess
+
+    parts     = []
+    ocr_pages = 0
+    for page in doc:  # keep `page` bound across the OCR call (weakref-sensitive)
+        txt = page.get_text()
+        if force_ocr or (not txt.strip() and tess):
+            tp  = page.get_textpage_ocr(dpi=_DPI, full=True)
+            txt = page.get_text(textpage=tp)
+            ocr_pages += 1
+        parts.append(txt)
+
+    text = "\f".join(parts)
+    out  = out_dir / f"{stem}.txt"
     out.write_text(text, encoding="utf-8")
+
     chars = sum(len(p) for p in parts)
-    print(f"  Extracted {chars} characters from {len(doc)} page(s).")
+    note  = f" ({ocr_pages} via OCR)" if ocr_pages else ""
+    print(f"  Extracted {chars} characters from {len(doc)} page(s){note}.")
     return out
 
 

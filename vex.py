@@ -50,8 +50,9 @@ _DETAILS: dict[str, dict[str, tuple[str, str]]] = {
         "png":     ("200 DPI", "PyMuPDF"),
         "jpg":     ("200 DPI", "PyMuPDF"),
         "webp":    ("200 DPI", "PyMuPDF"),
-        "text":    ("Extract text layer",             "PyMuPDF"),
-        "extract": ("Embedded images, native format", "PyMuPDF"),
+        "text":    ("Extract text layer, OCR fallback", "PyMuPDF"),
+        "ocr":     ("Force OCR on every page",          "PyMuPDF + Tesseract"),
+        "extract": ("Embedded images, native format",   "PyMuPDF"),
     },
     "document": {
         "pdf":  ("Rendered from HTML", "PyMuPDF"),
@@ -138,7 +139,7 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
     if fmt in ("jpg", "jpeg", "webp") and input_type == "image":
         raw = input("  Quality 1–100 [85]: ").strip()
         opts["quality"] = int(raw) if raw else 85
-    if input_type == "pdf" and fmt not in ("extract", "text"):
+    if input_type == "pdf" and fmt not in ("extract", "text", "ocr"):
         raw = input("  Page number [all]: ").strip()
         opts["page"] = int(raw) if raw.isdigit() else None
     if input_type == "url" and fmt not in _AUDIO_URL_FMTS:
