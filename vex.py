@@ -172,10 +172,11 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
 
 def main():
     if len(sys.argv) < 2:
-        print(f"Usage: {Path(sys.argv[0]).name} <file_or_url>")
+        print(f"Usage: {Path(sys.argv[0]).name} <file_or_url> [output_path]")
         sys.exit(1)
 
-    arg = sys.argv[1]
+    arg      = sys.argv[1]
+    out_path = sys.argv[2] if len(sys.argv) > 2 else None
     info = detect(arg)
 
     if not info["input_type"]:
@@ -211,6 +212,15 @@ def main():
         stem    = p.stem
         if (out_dir / f"{stem}.{fmt}").resolve() == p:
             stem = f"{stem}_out"
+
+    if out_path:
+        op = Path(out_path)
+        if out_path.endswith(("/", "\\")) or op.is_dir() or not op.suffix:
+            out_dir = op
+        else:
+            out_dir = op.parent
+            stem    = op.stem
+        out_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         if input_type == "image":
