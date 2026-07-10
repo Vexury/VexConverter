@@ -13,6 +13,9 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
     if fmt == "extract":
         return _extract_images(doc, out_dir, stem)
 
+    if fmt == "text":
+        return _extract_text(doc, out_dir, stem)
+
     pil_fmt = _PIL_FMT[fmt]
     mat     = fitz.Matrix(_DPI / 72, _DPI / 72)
     page    = opts.get("page")  # int (1-based) or None (all)
@@ -34,6 +37,16 @@ def _render_page(page, mat, pil_fmt: str, out: Path) -> Path:
     pix = page.get_pixmap(matrix=mat, colorspace=fitz.csRGB)
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     img.save(str(out), pil_fmt)
+    return out
+
+
+def _extract_text(doc, out_dir: Path, stem: str) -> Path:
+    parts = [page.get_text() for page in doc]
+    text  = "\f".join(parts)
+    out   = out_dir / f"{stem}.txt"
+    out.write_text(text, encoding="utf-8")
+    chars = sum(len(p) for p in parts)
+    print(f"  Extracted {chars} characters from {len(doc)} page(s).")
     return out
 
 

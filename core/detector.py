@@ -13,7 +13,22 @@ try:
 except ImportError:
     _HEIF_AVAILABLE = False
 
-HEIF_EXTS = {".heic", ".heif"}
+try:
+    import markdown  # noqa: F401
+    _MD_AVAILABLE = True
+except ImportError:
+    _MD_AVAILABLE = False
+
+try:
+    import mammoth  # noqa: F401
+    _DOCX_AVAILABLE = True
+except ImportError:
+    _DOCX_AVAILABLE = False
+
+HEIF_EXTS     = {".heic", ".heif"}
+MARKDOWN_EXTS = {".md", ".markdown"}
+HTML_EXTS     = {".html", ".htm"}
+DOCX_EXTS     = {".docx"}
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico", ".avif"}
 VIDEO_EXTS = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".webm", ".flv", ".m4v", ".ts", ".mts"}
@@ -24,9 +39,20 @@ IMAGE_OUTPUTS = ["jpg", "png", "webp", "avif", "gif", "bmp", "tiff", "pdf", "ico
 VIDEO_OUTPUTS = ["mp4", "mkv", "webm", "avi", "mov", "gif", "webp", "mp3", "wav", "flac", "aac", "ogg", "srt", "vtt", "frame"]
 AUDIO_OUTPUTS = ["mp3", "wav", "flac", "aac", "ogg", "opus", "m4a", "aiff"]
 URL_OUTPUTS   = ["mp4", "mp3", "wav", "flac", "opus"]
-PDF_OUTPUTS   = ["png", "jpg", "webp", "extract"]
+PDF_OUTPUTS   = ["png", "jpg", "webp", "text", "extract"]
 
 _URL_RE = re.compile(r"^https?://", re.IGNORECASE)
+
+
+def _document_outputs(ext: str) -> list[str]:
+    """Available document outputs for a given input extension, gated on installed libs."""
+    if ext in MARKDOWN_EXTS:
+        return (["pdf"] if _PDF_AVAILABLE else []) + ["html"]
+    if ext in HTML_EXTS:
+        return (["pdf"] if _PDF_AVAILABLE else []) + ["txt"]
+    if ext in DOCX_EXTS:
+        return (["pdf"] if _PDF_AVAILABLE else []) + ["html", "txt", "md"]
+    return []
 
 
 def detect(value: str) -> dict:
@@ -67,6 +93,18 @@ def detect(value: str) -> dict:
             "input_type": "pdf",
             "detected_format": "pdf",
             "available_outputs": PDF_OUTPUTS,
+        }
+
+    is_doc = (
+        (ext in MARKDOWN_EXTS and _MD_AVAILABLE)
+        or ext in HTML_EXTS
+        or (ext in DOCX_EXTS and _DOCX_AVAILABLE)
+    )
+    if is_doc:
+        return {
+            "input_type": "document",
+            "detected_format": ext.lstrip("."),
+            "available_outputs": _document_outputs(ext),
         }
 
     return {"input_type": None, "detected_format": None, "available_outputs": []}

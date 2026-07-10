@@ -50,7 +50,14 @@ _DETAILS: dict[str, dict[str, tuple[str, str]]] = {
         "png":     ("200 DPI", "PyMuPDF"),
         "jpg":     ("200 DPI", "PyMuPDF"),
         "webp":    ("200 DPI", "PyMuPDF"),
+        "text":    ("Extract text layer",             "PyMuPDF"),
         "extract": ("Embedded images, native format", "PyMuPDF"),
+    },
+    "document": {
+        "pdf":  ("Rendered from HTML", "PyMuPDF"),
+        "html": ("",                  "markdown / mammoth"),
+        "txt":  ("Plain text",        ""),
+        "md":   ("Markdown",          "mammoth"),
     },
     "url": {
         "mp4":  ("Resolution option",      "yt-dlp"),
@@ -131,7 +138,7 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
     if fmt in ("jpg", "jpeg", "webp") and input_type == "image":
         raw = input("  Quality 1–100 [85]: ").strip()
         opts["quality"] = int(raw) if raw else 85
-    if input_type == "pdf" and fmt != "extract":
+    if input_type == "pdf" and fmt not in ("extract", "text"):
         raw = input("  Page number [all]: ").strip()
         opts["page"] = int(raw) if raw.isdigit() else None
     if input_type == "url" and fmt not in _AUDIO_URL_FMTS:
@@ -231,6 +238,8 @@ def main():
             from converters.audio import convert
         elif input_type == "pdf":
             from converters.pdf import convert
+        elif input_type == "document":
+            from converters.document import convert
         else:
             from converters.url import convert
 
