@@ -7,6 +7,14 @@ try:
 except ImportError:
     _PDF_AVAILABLE = False
 
+try:
+    import pillow_heif  # noqa: F401
+    _HEIF_AVAILABLE = True
+except ImportError:
+    _HEIF_AVAILABLE = False
+
+HEIF_EXTS = {".heic", ".heif"}
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico", ".avif"}
 VIDEO_EXTS = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".webm", ".flv", ".m4v", ".ts", ".mts"}
 AUDIO_EXTS = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".opus"}
@@ -36,7 +44,7 @@ def detect(value: str) -> dict:
 
     ext = Path(value).suffix.lower()
 
-    if ext in IMAGE_EXTS:
+    if ext in IMAGE_EXTS or (ext in HEIF_EXTS and _HEIF_AVAILABLE):
         return {
             "input_type": "image",
             "detected_format": ext.lstrip("."),

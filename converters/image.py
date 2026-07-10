@@ -1,6 +1,13 @@
 from pathlib import Path
 from PIL import Image
 
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+    _HEIF_AVAILABLE = True
+except ImportError:
+    _HEIF_AVAILABLE = False
+
 _FMT = {
     "jpg": "JPEG", "jpeg": "JPEG",
     "png": "PNG", "webp": "WEBP", "gif": "GIF",
