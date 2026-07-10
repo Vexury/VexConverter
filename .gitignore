@@ -6,4 +6,3 @@ build/
 build*
 dist/
 *.spec
-output/

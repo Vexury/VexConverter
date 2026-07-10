@@ -46,9 +46,6 @@ _DETAILS: dict[str, dict[str, tuple[str, str]]] = {
         "m4a":  ("",         "ffmpeg"),
         "aiff": ("Lossless", "ffmpeg"),
     },
-    "svg": {
-        "png": ("DPI option (default 96)", "cairosvg"),
-    },
     "pdf": {
         "png":     ("200 DPI", "PyMuPDF"),
         "jpg":     ("200 DPI", "PyMuPDF"),
@@ -134,16 +131,13 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
     if fmt in ("jpg", "jpeg", "webp") and input_type == "image":
         raw = input("  Quality 1–100 [85]: ").strip()
         opts["quality"] = int(raw) if raw else 85
-    if input_type == "svg":
-        raw = input("  DPI [96]: ").strip()
-        opts["dpi"] = int(raw) if raw.isdigit() else 96
     if input_type == "pdf" and fmt != "extract":
         raw = input("  Page number [all]: ").strip()
         opts["page"] = int(raw) if raw.isdigit() else None
     if input_type == "url" and fmt not in _AUDIO_URL_FMTS:
         raw = input("  Max resolution [best / 1080 / 720 / 480 / 360]: ").strip()
         opts["max_height"] = int(raw) if raw.isdigit() else None
-    if input_type in ("image", "video", "svg") and fmt not in _NO_DIMS:
+    if input_type in ("image", "video") and fmt not in _NO_DIMS:
         raw = input("  Dimensions WxH [original]: ").strip()
         if raw:
             opts["dims"] = _parse_dims(raw)
@@ -221,8 +215,6 @@ def main():
     try:
         if input_type == "image":
             from converters.image import convert
-        elif input_type == "svg":
-            from converters.svg import convert
         elif input_type == "video":
             from converters.video import convert
         elif input_type == "audio":

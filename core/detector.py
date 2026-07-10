@@ -8,13 +8,11 @@ except ImportError:
     _PDF_AVAILABLE = False
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico", ".avif"}
-SVG_EXTS   = {".svg", ".svgz"}
 VIDEO_EXTS = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".webm", ".flv", ".m4v", ".ts", ".mts"}
 AUDIO_EXTS = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".opus"}
 PDF_EXTS   = {".pdf"}
 
 IMAGE_OUTPUTS = ["jpg", "png", "webp", "avif", "gif", "bmp", "tiff", "pdf", "ico"]
-SVG_OUTPUTS   = ["png"]
 VIDEO_OUTPUTS = ["mp4", "mkv", "webm", "avi", "mov", "gif", "webp", "mp3", "wav", "flac", "aac", "ogg", "srt", "vtt", "frame"]
 AUDIO_OUTPUTS = ["mp3", "wav", "flac", "aac", "ogg", "opus", "m4a", "aiff"]
 URL_OUTPUTS   = ["mp4", "mp3", "wav", "flac", "opus"]
@@ -43,12 +41,6 @@ def detect(value: str) -> dict:
             "input_type": "image",
             "detected_format": ext.lstrip("."),
             "available_outputs": IMAGE_OUTPUTS,
-        }
-    if ext in SVG_EXTS:
-        return {
-            "input_type": "svg",
-            "detected_format": "svg",
-            "available_outputs": SVG_OUTPUTS,
         }
     if ext in VIDEO_EXTS:
         return {

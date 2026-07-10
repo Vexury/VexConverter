@@ -4,11 +4,19 @@ A minimal command-line tool for converting files and URLs. Drop a file or URL in
 
 ## Usage
 
+Windows:
+
 ```
-vex_converter.bat <file_or_url>
+bin\vex_converter.bat <file_or_url>
 ```
 
-The tool detects the input type automatically, lists the available output formats, and prompts you to choose. Depending on the format, you will be offered additional options:
+Linux / macOS:
+
+```
+bin/vex_converter.sh <file_or_url>
+```
+
+The launcher creates a virtual environment and installs dependencies on first run. The tool detects the input type automatically, lists the available output formats, and prompts you to choose. Depending on the format, you will be offered additional options:
 
 - **Dimensions** — `1920x1080`, `1920`, `x1080`, or `60%` (images and video)
 - **Trim** — start and end time in seconds or `HH:MM:SS` (video and audio)
@@ -23,7 +31,11 @@ All options are optional — press Enter to use the default.
 - Python 3.10+
 - [ffmpeg](https://ffmpeg.org) on PATH — required for video and audio
 
-Run `install_ffmpeg.bat` to install ffmpeg automatically, or install it manually with `winget install Gyan.FFmpeg`.
+Install ffmpeg per platform:
+
+- **Windows** — run `install_ffmpeg.bat`, or `winget install Gyan.FFmpeg`
+- **macOS / Linux** — run `./install_ffmpeg.sh` (detects Homebrew, apt, dnf, or pacman)
+- Or install manually: **macOS** `brew install ffmpeg`, **Linux** `sudo apt install ffmpeg` (Debian/Ubuntu) or your distro's package manager
 
 ## Conversions
 
@@ -49,7 +61,7 @@ Input: `.mp4` `.mkv` `.avi` `.mov` `.wmv` `.webm` `.flv` `.m4v` `.ts` `.mts`
 |--------|-------|
 | mp4 | H.264 + AAC |
 | mkv | H.264 + AAC |
-| webm | VP9 + Opus |
+| webm | VP9 (default) or VP8, codec option |
 | avi | H.264 + MP3 |
 | mov | H.264 + AAC |
 | gif | Animated, 640px wide, FPS option (default: 10) |
@@ -97,6 +109,17 @@ Input: any URL supported by yt-dlp (YouTube, Vimeo, and many more)
 | wav | Audio only |
 | flac | Audio only, lossless |
 | opus | Audio only |
+
+## Building a standalone executable
+
+Two Windows build scripts bundle the tool into a single `dist\vex_converter.exe` with [PyInstaller](https://pyinstaller.org). Each sets up a `.venv`, installs dependencies, and runs the build:
+
+| Script | PDF support | Binary size |
+|--------|-------------|-------------|
+| `build_full.bat` | Yes (bundles PyMuPDF) | Larger |
+| `build_slim.bat` | No (excludes PyMuPDF) | Smaller |
+
+Use `build_slim.bat` when you don't need PDF conversions and want the smallest possible executable.
 
 ## Built with
 
