@@ -22,6 +22,9 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
     if fmt == "ocr":
         return _extract_text(doc, out_dir, stem, force_ocr=True)
 
+    if fmt == "reorder":
+        return _reorder(doc, opts.get("order", ""), input_path, out_dir, stem)
+
     pil_fmt = _PIL_FMT[fmt]
     mat     = fitz.Matrix(_DPI / 72, _DPI / 72)
     page    = opts.get("page")  # int (1-based) or None (all)
@@ -70,6 +73,49 @@ def _extract_text(doc, out_dir: Path, stem: str, force_ocr: bool = False) -> Pat
     chars = sum(len(p) for p in parts)
     note  = f" ({ocr_pages} via OCR)" if ocr_pages else ""
     print(f"  Extracted {chars} characters from {len(doc)} page(s){note}.")
+    return out
+
+
+def _parse_order(order_str: str) -> list[int]:
+    if not order_str.strip():
+        raise RuntimeError("No page order given.")
+    order = []
+    for token in order_str.split(","):
+        token = token.strip()
+        if "-" in token.lstrip("-"):
+            a, _, b = token.partition("-")
+            if not (a.strip().isdigit() and b.strip().isdigit()):
+                raise RuntimeError(f"Invalid range '{token}'.")
+            a, b = int(a), int(b)
+            step = 1 if b >= a else -1
+            order.extend(range(a, b + step, step))
+        elif token.isdigit():
+            order.append(int(token))
+        else:
+            raise RuntimeError(f"Invalid page '{token}'.")
+    return order
+
+
+def _reorder(doc, order_str: str, input_path: str, out_dir: Path, stem: str) -> Path:
+    total = len(doc)
+    order = _parse_order(order_str)
+    if sorted(order) != list(range(1, total + 1)):
+        raise RuntimeError(
+            f"Page order must list every page exactly once. "
+            f"Document has {total} page(s); got {order}."
+        )
+
+    new = fitz.open()
+    for i in order:
+        new.insert_pdf(doc, from_page=i - 1, to_page=i - 1)
+
+    out = out_dir / f"{stem}.pdf"
+    if out.resolve() == Path(input_path).resolve():
+        out = out_dir / f"{stem}_reordered.pdf"
+    new.save(str(out))
+    new.close()
+
+    print(f"  Reordered {total} page(s).")
     return out
 
 

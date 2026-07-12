@@ -109,6 +109,7 @@ Input: `.pdf`
 | text | Extracts the text layer; falls back to OCR per page when empty and Tesseract is available |
 | ocr | Forces OCR on every page (requires Tesseract) |
 | extract | Extracts all embedded images in their native format |
+| reorder | Reorders pages into a new PDF; page order option, e.g. `3,1,2` or `3-5,1,2` (must list every page exactly once) |
 
 ### Document
 Input: `.md` `.markdown` `.html` `.htm` `.docx`

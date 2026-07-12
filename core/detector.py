@@ -39,7 +39,7 @@ IMAGE_OUTPUTS = ["jpg", "png", "webp", "avif", "gif", "bmp", "tiff", "pdf", "ico
 VIDEO_OUTPUTS = ["mp4", "mkv", "webm", "avi", "mov", "gif", "webp", "mp3", "wav", "flac", "aac", "ogg", "srt", "vtt", "frame"]
 AUDIO_OUTPUTS = ["mp3", "wav", "flac", "aac", "ogg", "opus", "m4a", "aiff"]
 URL_OUTPUTS   = ["mp4", "mp3", "wav", "flac", "opus"]
-PDF_OUTPUTS   = ["png", "jpg", "webp", "text", "extract"]
+PDF_OUTPUTS   = ["png", "jpg", "webp", "text", "extract", "reorder"]
 
 _URL_RE = re.compile(r"^https?://", re.IGNORECASE)
 
