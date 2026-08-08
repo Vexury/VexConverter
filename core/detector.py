@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 try:
-    import fitz
+    import pymupdf  # noqa: F401
     _PDF_AVAILABLE = True
 except ImportError:
     _PDF_AVAILABLE = False

@@ -182,8 +182,11 @@ def prompt_options(fmt: str, input_type: str, input_path: str = "") -> dict:
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     if len(sys.argv) < 2:
-        print(f"Usage: {Path(sys.argv[0]).name} <file_or_url> [output_path]")
+        print("Usage: vexc <file_or_url> [output_path]")
         sys.exit(1)
 
     arg      = sys.argv[1]

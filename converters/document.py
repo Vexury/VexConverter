@@ -1,7 +1,7 @@
 from pathlib import Path
 from html.parser import HTMLParser
 
-import fitz  # PyMuPDF
+import pymupdf
 
 _PAGE   = "a4"
 _MARGIN = 36  # 0.5 inch
@@ -49,9 +49,9 @@ def _html_to_text(html: str) -> str:
 
 
 def _html_to_pdf(html: str, out: Path) -> Path:
-    story  = fitz.Story(html=html)
-    writer = fitz.DocumentWriter(str(out))
-    rect   = fitz.paper_rect(_PAGE)
+    story  = pymupdf.Story(html=html)
+    writer = pymupdf.DocumentWriter(str(out))
+    rect   = pymupdf.paper_rect(_PAGE)
     area   = rect + (_MARGIN, _MARGIN, -_MARGIN, -_MARGIN)
     more = 1
     while more:

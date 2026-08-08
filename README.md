@@ -7,13 +7,13 @@ A minimal command-line tool for converting files and URLs. Drop a file or URL in
 Windows:
 
 ```
-bin\vex_converter.bat <file_or_url>
+bin\vexc.bat <file_or_url>
 ```
 
 Linux / macOS:
 
 ```
-bin/vex_converter.sh <file_or_url>
+bin/vexc.sh <file_or_url>
 ```
 
 The launcher creates a virtual environment and installs dependencies on first run. The tool detects the input type automatically, lists the available output formats, and prompts you to choose. Depending on the format, you will be offered additional options:
@@ -135,7 +135,7 @@ Input: any URL supported by yt-dlp (YouTube, Vimeo, and many more)
 
 ## Building a standalone executable
 
-Two Windows build scripts bundle the tool into a single `dist\vex_converter.exe` with [PyInstaller](https://pyinstaller.org). Each sets up a `.venv`, installs dependencies, and runs the build:
+Two Windows build scripts bundle the tool into a single `dist\vexc.exe` with [PyInstaller](https://pyinstaller.org). Each sets up a `.venv`, installs dependencies, and runs the build:
 
 | Script | PDF / document support | Binary size |
 |--------|------------------------|-------------|

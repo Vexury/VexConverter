@@ -1,5 +1,5 @@
 import os
-import fitz  # PyMuPDF
+import pymupdf
 from pathlib import Path
 from PIL import Image
 
@@ -10,7 +10,7 @@ _DPI = 200
 
 
 def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> Path:
-    doc   = fitz.open(input_path)
+    doc   = pymupdf.open(input_path)
     total = len(doc)
 
     if fmt == "extract":
@@ -26,7 +26,7 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
         return _reorder(doc, opts.get("order", ""), input_path, out_dir, stem)
 
     pil_fmt = _PIL_FMT[fmt]
-    mat     = fitz.Matrix(_DPI / 72, _DPI / 72)
+    mat     = pymupdf.Matrix(_DPI / 72, _DPI / 72)
     page    = opts.get("page")  # int (1-based) or None (all)
 
     if page is not None:
@@ -43,7 +43,7 @@ def convert(input_path: str, fmt: str, opts: dict, out_dir: Path, stem: str) -> 
 
 
 def _render_page(page, mat, pil_fmt: str, out: Path) -> Path:
-    pix = page.get_pixmap(matrix=mat, colorspace=fitz.csRGB)
+    pix = page.get_pixmap(matrix=mat, colorspace=pymupdf.csRGB)
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     img.save(str(out), pil_fmt)
     return out
@@ -105,7 +105,7 @@ def _reorder(doc, order_str: str, input_path: str, out_dir: Path, stem: str) -> 
             f"Document has {total} page(s); got {order}."
         )
 
-    new = fitz.open()
+    new = pymupdf.open()
     for i in order:
         new.insert_pdf(doc, from_page=i - 1, to_page=i - 1)
 
