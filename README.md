@@ -135,7 +135,7 @@ Input: any URL supported by yt-dlp (YouTube, Vimeo, and many more)
 
 ## Building a standalone executable
 
-Two Windows build scripts bundle the tool into a single `dist\vexc.exe` with [PyInstaller](https://pyinstaller.org). Each sets up a `.venv`, installs dependencies, and runs the build:
+Windows only. Two build scripts bundle the tool into a single `dist\vexc.exe` with [PyInstaller](https://pyinstaller.org). Each sets up a `.venv`, installs dependencies, and runs the build. On Linux and macOS there is no standalone build; run the tool from source via `bin/vexc.sh` instead.
 
 | Script | PDF / document support | Binary size |
 |--------|------------------------|-------------|
