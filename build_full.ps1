@@ -13,17 +13,23 @@ pip install -q pyinstaller
 
 $pyiArgs = @(
     "--onefile", "--name", "vexc",
+    "--additional-hooks-dir", "hooks",
     "--hidden-import", "converters.image",
     "--hidden-import", "converters.video",
     "--hidden-import", "converters.audio",
     "--hidden-import", "converters.pdf",
     "--hidden-import", "converters.url",
     "--hidden-import", "converters.document",
-    "--collect-all", "pymupdf",
+    "--collect-binaries", "pymupdf",
     "--collect-all", "pillow_heif",
     "--collect-all", "markdown",
     "--collect-all", "mammoth",
     "--collect-all", "yt_dlp",
+    "--exclude-module", "pymupdf.layout",
+    "--exclude-module", "pymupdf4llm",
+    "--exclude-module", "onnxruntime",
+    "--exclude-module", "networkx",
+    "--exclude-module", "numpy",
     "vex.py"
 )
 pyinstaller @pyiArgs
