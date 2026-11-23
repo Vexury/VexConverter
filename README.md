@@ -144,6 +144,17 @@ Windows only. Two build scripts bundle the tool into a single `dist\vexc.exe` wi
 
 Use `build_slim.ps1` when you don't need PDF or document conversions and want the smallest possible executable. Both bundle HEIC/HEIF image support.
 
+## Testing
+
+`tests/smoke.py` runs every converter on generated inputs and checks the outputs. Run it after updating dependencies:
+
+```
+.venv/Scripts/python tests/smoke.py          # Windows
+.venv/bin/python tests/smoke.py              # macOS / Linux
+```
+
+Add `--net` to include a real yt-dlp download and `--keep` to keep the output folder. Video, audio and OCR cases are skipped when ffmpeg or Tesseract is missing.
+
 ## Built with
 
 - [Pillow](https://python-pillow.org) — image conversion
