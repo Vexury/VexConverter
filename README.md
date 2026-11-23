@@ -28,7 +28,7 @@ All options are optional — press Enter to use the default.
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.12+
 - [ffmpeg](https://ffmpeg.org) on PATH — required for video, audio, and URL conversions
 - [Tesseract](https://tesseract-ocr.github.io) — optional, enables OCR for scanned PDFs
 
